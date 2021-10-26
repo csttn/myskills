@@ -10,8 +10,13 @@ import {
 import { Button } from '../components/Button';
 import { SkillCard } from '../components/SkillCard';
 
+interface ISkill {
+  id: string;
+  name: string;
+}
+
 export const Home = () => {
-  const [skills, setSkills] = useState([]);
+  const [skills, setSkills] = useState<ISkill[]>([]);
   const [newSkill, setNewSkill] = useState('');
   const [gretting, setGretting] = useState('');
 
@@ -30,18 +35,26 @@ export const Home = () => {
     }
   }, []);
 
-  const handleAddSkill = () => {
+  const handleAddSkill = (newSkill: string) => {
     const validSkill = skills.find(
-      (skill) => skill.toLowerCase() === newSkill.toLowerCase(),
+      ({ name }) => name.toLowerCase() === newSkill.toLowerCase(),
     );
     if (newSkill !== '' && newSkill.trim() !== '' && !validSkill) {
-      setSkills([...skills, newSkill]);
+      const skill: ISkill = {
+        id: String(new Date().getTime()),
+        name: newSkill,
+      };
+      setSkills([...skills, skill]);
     }
     setNewSkill('');
   };
 
   const clearSkills = () => {
     setSkills([]);
+  };
+
+  const handleRemoveSkill = (id: string) => {
+    setSkills( oldSkills => oldSkills.filter((skill) => skill.id !== id));
   };
 
   return (
@@ -55,13 +68,19 @@ export const Home = () => {
         value={newSkill}
         onChangeText={setNewSkill}
       />
-      <Button color='#a370f7' text='Adcionar' onPress={handleAddSkill} />
+      <Button
+        color='#a370f7'
+        text='Adcionar'
+        onPress={() => handleAddSkill(newSkill)}
+      />
       <Text style={[styles.title, { marginVertical: 20 }]}>My Skills:</Text>
 
       <FlatList
         data={skills}
-        renderItem={({ item }) => <SkillCard skill={item} />}
-        keyExtractor={(item) => item}
+        renderItem={({ item }) => (
+          <SkillCard {...item} onPress={() => handleRemoveSkill(item.id)} />
+        )}
+        keyExtractor={({ id }) => id}
       />
 
       <Button text='Limpar' color='#f00' onPress={clearSkills} />
